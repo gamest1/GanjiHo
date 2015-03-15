@@ -1,7 +1,11 @@
+package comp6721;
+
 import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.*;
+
+import comp6721.AsyncExecutor.AsyncExecutorCallback;
 
 public class GanjiHoDriver extends JFrame {
 
@@ -9,6 +13,7 @@ public class GanjiHoDriver extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	public static final String INIT_MESSAGE = "Hello, please enter a board size and the names of the players";
+	public static final int MAX_AI_TIMEOUT = 30000;
 	
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -111,9 +116,9 @@ public class GanjiHoDriver extends JFrame {
         piecesPanel.setPreferredSize(new Dimension(60*(m+1),60*(m+1)));
         piecesPanel.setBackground(Color.CYAN);
 
-        ImageIcon image0 = new ImageIcon(getClass().getResource("0.png")); 
-        ImageIcon image1 = new ImageIcon(getClass().getResource("1.png")); 
-        ImageIcon image2 = new ImageIcon(getClass().getResource("2.png")); 
+        ImageIcon image0 = new ImageIcon(getClass().getResource("../0.png")); 
+        ImageIcon image1 = new ImageIcon(getClass().getResource("../1.png")); 
+        ImageIcon image2 = new ImageIcon(getClass().getResource("../2.png")); 
         
         for(int r = 0 ; r <= m ; r++) {
             for(int c = 0 ; c <= m ; c++) {
@@ -157,16 +162,39 @@ public class GanjiHoDriver extends JFrame {
         
         if(this.game.currentPlayer().equals("COMPUTER") && !this.game.isManual()) {
     		moveBox.setText("");
+    		alertLabel.setText("Generating AI move! Please wait...");
     		moveBox.setEnabled(false);
-        	this.alertLabel.setText("Generating AI move. Please wait...");		
-            String tmp = this.game.playAI();
-            if(!tmp.equals("")) {
-            	moveBox.setText(tmp);
-            	this.alertLabel.setText("The AI move is ready. Please enter to accept it and continue playing...");
-            } 
-    		moveBox.setEnabled(true);
+    		AsyncExecutorCallback callback = new AsyncExecutorCallback() {	 
+    			@Override
+    			public void taskCompleted() {
+    				String tmp = game.getAIMove();
+    				TryToPlayMove(tmp);
+    				moveBox.setEnabled(true);
+    				moveBox.requestFocus();		
+    			}
+     
+    			@Override
+    			public void taskFailed() {
+    				System.out.println("AI move generation timeout! Fetching any...");
+    				String tmp = game.getAMove();
+    				TryToPlayMove(tmp);
+    				moveBox.setEnabled(true);
+    				moveBox.requestFocus();		
+    			}
+    		};
+    		
+    		AsyncExecutor.asyncExecuteTask(new AITask(this.game), MAX_AI_TIMEOUT, callback);
         }
-		moveBox.requestFocus();		
+	}
+	
+	private static class AITask implements Runnable {
+		private Game game;
+		public AITask(Game aGame) {
+			this.game = aGame;
+		}
+		public void run() {
+			game.playAI(); 
+		}		
 	}
 	
 	void removeGame() {

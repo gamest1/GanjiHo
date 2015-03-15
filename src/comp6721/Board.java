@@ -1,6 +1,8 @@
+package comp6721;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random; 
 
 public class Board {
 	
@@ -13,7 +15,7 @@ public class Board {
 	    }
 	}
 	
-	public static int max_depth = 4;
+	public static int max_depth = 5;
 	
 	public int boardSize;
 	public int[][] board;
@@ -28,6 +30,22 @@ public class Board {
 			System.out.println("Minimum board size is 6! Making size equal to 6");
 			size = 6;
 		}		
+		
+		switch(size) {
+			case 6:
+				max_depth = 6;
+				break;
+			case 7:
+				max_depth = 5;
+				break;
+			case 8:
+				max_depth = 4;
+				break;
+			default:
+				max_depth = 3;
+				break;
+		}
+		
 		this.boardSize = size;
 		this.board = new int[size][size];
 		
@@ -188,6 +206,17 @@ public class Board {
 		}
 		
 		return this.plays1.size() - this.plays2.size();
+	}
+	
+	public String randomMove(int player) {
+		Random rand = new Random();
+		if(player == 1) {
+			int lim = this.plays1.size();
+			return this.plays1.get(rand.nextInt(lim));
+		} else {
+			int lim = this.plays2.size();
+			return this.plays2.get(rand.nextInt(lim));
+		}
 	}
 	
 	public String generateAIPlay(int player) {

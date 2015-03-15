@@ -1,3 +1,4 @@
+package comp6721;
 
 public class Game {
 	
@@ -8,6 +9,8 @@ public class Game {
 	private Board board;
 	public int turn;
 	
+	private String AIMove;
+
 	public Game(boolean isManual, String aPlayer1, String aPlayer2, int aSize) {
 		this.manualMode = isManual;
 		this.Player1 = aPlayer1;
@@ -15,6 +18,7 @@ public class Game {
 		this.gridSize = aSize;
 		this.board = new Board(this.gridSize);
 		this.turn = 1;
+		this.AIMove = "";
 	}
 	
 	public boolean tryPlay(char rowChar, int colH) {	
@@ -23,6 +27,14 @@ public class Game {
 			this.turn = (this.turn % 2 == 0 ) ? 1 : 2;
 		}
 		return resp;
+	}
+	
+	public String getAMove() {
+		return this.board.randomMove(this.turn);
+	}
+	
+	public String getAIMove() {
+		return this.AIMove;
 	}
 	
 	public int getState(int r,int c) {
@@ -73,16 +85,18 @@ public class Game {
 		return this.gridSize;
 	}
 	
-	public String playAI() {
-		String resp = "";
+	public void playAI() {
         if(!this.manualMode) {
+    		this.AIMove = "";
+        	System.out.print("Generating AI move... ");
+        	
     		if(this.Player1.equals("COMPUTER") && this.turn == 1 ) {
-    			resp = this.board.generateAIPlay(1);
+    			this.AIMove = this.board.generateAIPlay(1);
     		} else if(this.Player2.equals("COMPUTER") && this.turn == 2 ) {
-    			resp = this.board.generateAIPlay(2);
+    			this.AIMove = this.board.generateAIPlay(2);
     		}
+    		
+    		System.out.println("Done! (" + this.AIMove + ")");
         }
-        
-        return resp;
 	}
 }
