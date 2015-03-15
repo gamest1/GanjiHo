@@ -41,12 +41,10 @@ public class Game {
 		if(this.board.playsForPlayer( this.turn ) > 0) 
 			resp = true;
 
-		System.out.println("WHITE MOVES: " + this.board.plays1);
-		System.out.println("BLACK MOVES: " + this.board.plays2);
 		return resp;
 	}
 	
-	public boolean getMode() {
+	public boolean isManual() {
 		return this.manualMode;
 	}
 	
@@ -75,13 +73,16 @@ public class Game {
 		return this.gridSize;
 	}
 	
-	public void playAI() {
+	public String playAI() {
+		String resp = "";
         if(!this.manualMode) {
     		if(this.Player1.equals("COMPUTER") && this.turn == 1 ) {
-    			this.board.generateAIPlay(1);
+    			resp = this.board.generateAIPlay(1);
     		} else if(this.Player2.equals("COMPUTER") && this.turn == 2 ) {
-    			this.board.generateAIPlay(2);
+    			resp = this.board.generateAIPlay(2);
     		}
         }
+        
+        return resp;
 	}
 }

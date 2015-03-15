@@ -1,12 +1,27 @@
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Board {
+	
+	public class Play {
+	    int score;
+	    String move;
+	    public Play(String move, int score) {
+	        this.score = score;
+	        this.move = move;
+	    }
+	}
+	
+	public static int max_depth = 4;
+	
 	public int boardSize;
 	public int[][] board;
 	
 	public List<String> plays1;
 	public List<String> plays2;
+	
+	public List<Play> playsAndScores;
 	
 	public Board(int size) {
 		if(size < 6) {
@@ -165,13 +180,74 @@ public class Board {
 		return resp;
 	}
 	
-	private int heuristicValueForBoard() {
+	private int heuristicValue(boolean isMAX) {
+		if(isMAX && this.plays1.size() == 0) {
+			return Integer.MIN_VALUE;
+		} else if(!isMAX && this.plays2.size() == 0) {
+			return Integer.MAX_VALUE;
+		}
+		
 		return this.plays1.size() - this.plays2.size();
 	}
 	
-	public void generateAIPlay(int player) {
-		System.out.println("Generating AI move for player " + player);
+	public String generateAIPlay(int player) {
+		String resp = "";
+		
+		this.playsAndScores = new ArrayList<Play>();
+		int tmp = alphaBeta(this, max_depth, Integer.MIN_VALUE, Integer.MAX_VALUE, (player == 1) ? true : false);
+		for(Play p : this.playsAndScores) {
+			if( p.score == tmp ) {
+				resp = p.move;
+				break;
+			}
+		}		
+		return resp;
 	}
+	
+	//The actual MinMax Logic is in this function
+	public int alphaBeta(Board node,int depth,int a, int b, boolean isMAX) {
+		boolean isTerminal = false;
+		if(isMAX && node.plays1.size() == 0) isTerminal = true;
+		else if(!isMAX && node.plays2.size() == 0) isTerminal = true;
+		
+		if (depth == 0 || isTerminal)
+			return node.heuristicValue(isMAX);
+		
+		if(isMAX) {
+			int resp = Integer.MIN_VALUE;
+			for(Iterator<String> i = node.plays1.iterator(); i.hasNext(); ) {
+				String move = i.next();
+				char rowH = move.toUpperCase().charAt(0);
+				int col = Integer.parseInt(move.substring(1));
+				Board newBoard = new Board(this);
+				newBoard.play(1,rowH,col);
+			    resp = Math.max(resp,alphaBeta(newBoard,depth - 1,a,b, false));
+			    a = Math.max(a, resp);
+			    if(depth == max_depth) {
+			    	this.playsAndScores.add(new Play(move,a));
+			    }			    	
+			    if(b <= a) break; //B-prunning!!
+			}
+			return resp;
+		} else {
+			int resp = Integer.MAX_VALUE;
+			for(Iterator<String> i = node.plays2.iterator(); i.hasNext(); ) {
+				String move = i.next();
+				char rowH = move.toUpperCase().charAt(0);
+				int col = Integer.parseInt(move.substring(1));
+				Board newBoard = new Board(this);
+				newBoard.play(2,rowH,col);
+			    resp = Math.min(resp,alphaBeta(newBoard,depth - 1,a,b, true));
+			    b = Math.min(b, resp);
+			    if(depth == max_depth) {
+			    	this.playsAndScores.add(new Play(move,b));
+			    }
+			    if(b <= a) break; //A-prunning!!
+			}
+			return resp;
+		}
+	}
+	
 /*	private String[] calculatePlaysForPlayer(int player) {
 		ArrayList<String> plays = new ArrayList<String>();
 		for(int r = 0 ; r < this.boardSize ; r++) 

@@ -154,7 +154,19 @@ public class GanjiHoDriver extends JFrame {
         }
 
         this.boardPanel.add(piecesPanel, BorderLayout.CENTER);
-        this.game.playAI();
+        
+        if(this.game.currentPlayer().equals("COMPUTER") && !this.game.isManual()) {
+    		moveBox.setText("");
+    		moveBox.setEnabled(false);
+        	this.alertLabel.setText("Generating AI move. Please wait...");		
+            String tmp = this.game.playAI();
+            if(!tmp.equals("")) {
+            	moveBox.setText(tmp);
+            	this.alertLabel.setText("The AI move is ready. Please enter to accept it and continue playing...");
+            } 
+    		moveBox.setEnabled(true);
+        }
+		moveBox.requestFocus();		
 	}
 	
 	void removeGame() {
