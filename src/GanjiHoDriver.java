@@ -14,7 +14,7 @@ public class GanjiHoDriver extends JFrame {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				GanjiHoDriver window = new GanjiHoDriver();
-				window.setTitle("Esteban Garro's Ganji-Ho Game - D1"); 
+				window.setTitle("Esteban Garro's Ganji-Ho Game - D2"); 
 				window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				window.setPreferredSize(new Dimension(700, 700));
 				window.pack();
@@ -34,61 +34,67 @@ public class GanjiHoDriver extends JFrame {
 	public JLabel messageLabel;
 	public JLabel alertLabel;
 	public JButton startButton;
+	public JRadioButton modeSelector;
 	
 	public Game game;
-	
-	public int turn;
-	
+		
 	public GanjiHoDriver() {	
 		 this.initializeUI(); 		 
+	}
+	
+	private boolean CheckMoveGrammar(String move) {
+		boolean resp = false;		
+		int m = game.getSize();		
+		//Here, decide whether the move is a valid move!
+		int rowH = (int)(move.toUpperCase().charAt(0));
+		if(rowH > 64 && rowH < 65+m) {
+			//This is a valid letter [A-Z]
+			try {
+				int col = Integer.parseInt(move.substring(1));
+				if(col > 0 && col <= m) {
+					resp = true;
+				}
+				else {
+					System.out.println("2) End of the string should be a number between 1 and " + m);
+				}
+			} catch (Exception ex) {
+				System.out.println("1) End of the string should be a number between 1 and " + m);
+			}
+		} else {
+			System.out.println( "First character must be a valid letter [A-" + (char)(64+m) + "]!");
+		}		
+		return resp;
+	}
+	
+	private void TryToPlayMove(String move) {
+		if( CheckMoveGrammar(move) ) {
+			int rowH = (int)(move.toUpperCase().charAt(0));
+			int col = Integer.parseInt(move.substring(1));
+			boolean resp = false;
+
+			//This performs the play and, upon success, changes the turn to the next player:
+			resp = game.tryPlay((char)rowH,col);
+			if(resp) {
+				renderGame(); 
+				if( !game.currentPlayerCanPlay() ) {
+					//GAME OVER! Next player doesn't have a way to play					
+					messageLabel.setText("GAME OVER !!  " + this.game.colorForPlayer(this.game.turn + 1) + " WINS !!");
+					alertLabel.setText("CONGRATULATIONS " + this.game.previousPlayer() + "!! " + this.game.currentPlayer() + " doesn't have a way to play!");
+				}
+			}
+			else {
+				alertLabel.setText("Not a valid move. " + this.game.currentPlayer() + ": Please, try again!");
+			}
+		} else {
+			alertLabel.setText( "Please enter a valid move!!");
+		}
 	}
 	
 	private class MoveBoxActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			String move = moveBox.getText();
 			moveBox.setText("");
-			
-			int m = game.getSize();
-			
-			//Here, decide whether the move is a valid move!
-			int rowH = (int)(move.toUpperCase().charAt(0));
-			if(rowH > 64 && rowH < 65+m) {
-				//This is a valid letter [A-Z]
-				int col = -1;
-				try {
-					col = Integer.parseInt(move.substring(1));
-					if(col > 0 && col <= m) {
-						boolean resp = false;
-						//Valid move!
-						resp = game.tryPlay(turn,(char)rowH,col);
-						String player;
-						
-						if(resp) {
-							//This changes the turn of the person!
-							renderGame(); 
-							if( !game.playerCanPlay(turn) ) {
-								//GAME OVER! Player doesn't have a way to play
-								player = game.getPlayerName(turn % 2);
-								String previousPlayer = game.getPlayerName( (turn-1) % 2);
-								
-								messageLabel.setText("G A M E   O V E R  ! ! " + (((turn-1) % 2 == 1) ? " WHITE " : " BLACK ") + "WINS!!");
-								alertLabel.setText("CONGRATULATIONS " + previousPlayer + "!! " + player + " does't have a way to play!");
-							}
-						}
-						else {
-							player = game.getPlayerName(turn % 2);
-							alertLabel.setText("Not a valid move. " + player + ": Please, try again!");
-						}
-					}
-					else {
-						alertLabel.setText("2) End of the string should be a number between 1 and " + m);
-					}
-				} catch (Exception ex) {
-					alertLabel.setText("1) End of the string should be a number between 1 and " + m);
-				}
-			} else {
-				alertLabel.setText( "First character must be a valid letter [A-" + (char)(64+m) + "]!");
-			}
+			TryToPlayMove(move);
 		}
     }
 	
@@ -97,7 +103,6 @@ public class GanjiHoDriver extends JFrame {
 		removeGame();
 		
 		int m = this.game.getSize();
-		System.out.println("Rendering Board of size: " + m);
 		
         JPanel piecesPanel = new JPanel();
         piecesPanel.setLayout(new GridBagLayout());
@@ -148,12 +153,11 @@ public class GanjiHoDriver extends JFrame {
             }
         }
 
-               	
         this.boardPanel.add(piecesPanel, BorderLayout.CENTER);
+        this.game.playAI();
 	}
 	
 	void removeGame() {
-		System.out.println("Removing Board");
 		this.boardPanel.removeAll();
 		this.boardPanel.revalidate();
 		this.boardPanel.repaint();
@@ -214,6 +218,9 @@ public class GanjiHoDriver extends JFrame {
             			default:
             				break;
             		}
+            	} else {
+            		this.modeSelector = new JRadioButton("AI Enabled",false);
+            		buttonPanel.add(this.modeSelector);
             	}
             }
         }
@@ -254,44 +261,61 @@ public class GanjiHoDriver extends JFrame {
 					restartActions();
 				}
 			}
-		});
-        
-        
+		});        
 	}
 	
 	public void startActions() {
-		this.turn = 0;
+		this.modeSelector.setEnabled(false);
+		boolean doStart = false;
 		String player1 = this.pBox1.getText();
 		String player2 = this.pBox2.getText();
 		int size = 0;
+		
 		try {
 			size = Integer.parseInt(this.sizeBox.getText());
 		} catch (Exception e){
 			alertLabel.setText("Please input a valid [6-9] board size!");
 		}
 		
-		if(player1.equals("") || player2.equals("")){
-			alertLabel.setText("You must enter the name of the players first!");
-		} else if(size < 6) {
-			alertLabel.setText("Please input a valid [6-9] board size!");
+		if(this.modeSelector.isSelected()) {
+			//One of the player's name must be blank. This is the computer player:
+			if(player1.equals("") && !player2.equals("")) {
+				player1 = "COMPUTER";
+				this.pBox1.setText(player1);
+				doStart = true;
+			} else if(player2.equals("") && !player1.equals("")) {
+				player2 = "COMPUTER";
+				this.pBox2.setText(player2);
+				doStart = true;
+			} else {
+				alertLabel.setText("In AI mode, exactly one of the player's names must be left blank. This will be AI player!");
+			}
 		} else {
-			game = new Game(true,player1,player2,size);
+			if(player1.equals("") || player2.equals("")){
+				alertLabel.setText("You must enter the name of the players first!");
+			} else if(size < 6) {
+				alertLabel.setText("Please input a valid [6-9] board size!");
+			} else {
+				doStart = true;
+			}
+		}
+		
+		if(doStart) {
+			game = new Game(!this.modeSelector.isSelected() ,player1,player2,size);
 			messageLabel.setText("WHITE: " + player1 + "   VS.  BLACK: " + player2);			
 			renderGame();
 		}
+		
 	}
 	
 	public void displayTurn() {
-		this.turn++;
-		if( this.turn % 2 == 1 ) {
-			alertLabel.setText( this.pBox1.getText() + ", please input your move on the box below!");
-		} else {
-			alertLabel.setText( this.pBox2.getText() + ", please input your move on the box below!");
-		} 
+		alertLabel.setText( this.game.currentPlayer() + ", please input your move on the box below!");
 	}
 	
 	public void restartActions() {
-		this.turn = 0;
+		
+		this.modeSelector.setEnabled(true);
+		this.modeSelector.setSelected(false);
 		this.sizeBox.setText("");
 		this.pBox1.setText("");
 		this.pBox2.setText("");

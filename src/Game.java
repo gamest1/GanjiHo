@@ -6,25 +6,23 @@ public class Game {
 	private String Player2;
 	private int gridSize;
 	private Board board;
+	public int turn;
 	
 	public Game(boolean isManual, String aPlayer1, String aPlayer2, int aSize) {
-		if(!isManual) {
-			System.out.println("Automated mode not yet active. Forcing manual mode");
-			isManual = true;
-		}
 		this.manualMode = isManual;
 		this.Player1 = aPlayer1;
 		this.Player2 = aPlayer2;
 		this.gridSize = aSize;
 		this.board = new Board(this.gridSize);
+		this.turn = 1;
 	}
 	
-	public boolean tryPlay(int player,char rowChar, int colH) {
-		int p = 2;
-		if(player % 2 == 1) 
-			p = 1;
-		
-		return this.board.play(p, rowChar, colH);
+	public boolean tryPlay(char rowChar, int colH) {	
+		boolean resp = this.board.play(turn, rowChar, colH);
+		if(resp) {
+			this.turn = (this.turn % 2 == 0 ) ? 1 : 2;
+		}
+		return resp;
 	}
 	
 	public int getState(int r,int c) {
@@ -35,17 +33,16 @@ public class Game {
 		this.Player1 = "";
 		this.Player2 = "";
 		this.board.reset();
+		this.turn = 1;
 	}
 	
-	public boolean playerCanPlay(int p) {
-		boolean resp = false;
-		int player = 2;
-		if(p % 2 == 1) player = 1;
-		
-		String []plays = this.board.playsForPlayer(player);
-		if(plays.length > 0) 
+	public boolean currentPlayerCanPlay() {
+		boolean resp = false;	
+		if(this.board.playsForPlayer( this.turn ) > 0) 
 			resp = true;
-		
+
+		System.out.println("WHITE MOVES: " + this.board.plays1);
+		System.out.println("BLACK MOVES: " + this.board.plays2);
 		return resp;
 	}
 	
@@ -53,12 +50,38 @@ public class Game {
 		return this.manualMode;
 	}
 	
-	public String getPlayerName(int i) {
-		if(i%2 == 1) return this.Player1;
-		else return this.Player2;
+	public String currentPlayer() {
+		if( this.turn == 1 ) {
+			return Player1;
+		} else {
+			return Player2;
+		} 
+	}
+	
+	public String previousPlayer() {
+		if( this.turn == 1 ) {
+			return Player2;
+		} else {
+			return Player1;
+		} 
+	}
+	
+	public String colorForPlayer(int i) {
+		if(i%2 == 1) return "WHITE";
+		else return "BLACK";
 	}
 	
 	public int getSize() {
 		return this.gridSize;
+	}
+	
+	public void playAI() {
+        if(!this.manualMode) {
+    		if(this.Player1.equals("COMPUTER") && this.turn == 1 ) {
+    			this.board.generateAIPlay(1);
+    		} else if(this.Player2.equals("COMPUTER") && this.turn == 2 ) {
+    			this.board.generateAIPlay(2);
+    		}
+        }
 	}
 }
