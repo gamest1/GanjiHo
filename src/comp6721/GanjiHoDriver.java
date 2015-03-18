@@ -80,12 +80,16 @@ public class GanjiHoDriver extends JFrame {
 			//This performs the play and, upon success, changes the turn to the next player:
 			resp = game.tryPlay((char)rowH,col);
 			if(resp) {
-				renderGame(); 
-				if( !game.currentPlayerCanPlay() ) {
-					//GAME OVER! Next player doesn't have a way to play					
-					messageLabel.setText("GAME OVER !!  " + this.game.colorForPlayer(this.game.turn + 1) + " WINS !!");
-					alertLabel.setText("CONGRATULATIONS " + this.game.previousPlayer() + "!! " + this.game.currentPlayer() + " doesn't have a way to play!");
-				}
+				SwingUtilities.invokeLater(new Runnable() {
+				    public void run() {
+				    	renderGame(); 
+				    	if( !game.currentPlayerCanPlay() ) {
+							//GAME OVER! Next player doesn't have a way to play					
+							messageLabel.setText("GAME OVER !!  " + game.colorForPlayer(game.turn + 1) + " WINS !!");
+							alertLabel.setText("CONGRATULATIONS " + game.previousPlayer() + "!! " + game.currentPlayer() + " doesn't have a way to play!");
+						}
+				    }
+				});
 			}
 			else {
 				alertLabel.setText("Not a valid move. " + this.game.currentPlayer() + ": Please, try again!");
@@ -168,32 +172,32 @@ public class GanjiHoDriver extends JFrame {
     			@Override
     			public void taskCompleted() {
     				String tmp = game.getAIMove();
-    				TryToPlayMove(tmp);
+    				if(!game.isOver()) {
+    					TryToPlayMove(tmp);
+    				}
     				moveBox.setEnabled(true);
-    				moveBox.requestFocus();		
+    				moveBox.requestFocus();	
     			}
      
     			@Override
     			public void taskFailed() {
-    				System.out.println("AI move generation timeout! Fetching any...");
-    				String tmp = game.getAMove();
-    				TryToPlayMove(tmp);
+    				if(!game.isOver()) {
+    					System.out.println("AI move generation timeout! Fetching any...");
+    					String tmp = game.getAMove();
+    					TryToPlayMove(tmp);
+    				}
     				moveBox.setEnabled(true);
     				moveBox.requestFocus();		
     			}
     		};
     		
-    		AsyncExecutor.asyncExecuteTask(new AITask(this.game), MAX_AI_TIMEOUT, callback);
+    		AsyncExecutor.asyncExecuteTask(new AITask(), MAX_AI_TIMEOUT, callback);
         }
 	}
 	
 	private static class AITask implements Runnable {
-		private Game game;
-		public AITask(Game aGame) {
-			this.game = aGame;
-		}
 		public void run() {
-			game.playAI(); 
+			Game.getInstance().playAI(); 
 		}		
 	}
 	
@@ -343,6 +347,7 @@ public class GanjiHoDriver extends JFrame {
 		if(doStart) {
 			game = new Game(!this.modeSelector.isSelected() ,player1,player2,size);
 			messageLabel.setText("WHITE: " + player1 + "   VS.  BLACK: " + player2);			
+			
 			renderGame();
 		}
 		
@@ -363,7 +368,7 @@ public class GanjiHoDriver extends JFrame {
 		
 		this.messageLabel.setText(INIT_MESSAGE);
 		this.alertLabel.setText("");
-		
+	
 		removeGame();
 	}
 }

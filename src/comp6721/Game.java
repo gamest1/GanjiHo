@@ -2,6 +2,9 @@ package comp6721;
 
 public class Game {
 	
+	private static Game instance = null;
+	
+	private boolean isOver;
 	private boolean manualMode;
 	private String Player1;
 	private String Player2;
@@ -11,6 +14,13 @@ public class Game {
 	
 	private String AIMove;
 
+	public static Game getInstance() {
+		if(instance == null) {
+			System.out.println("Should never getInstance before calling main constructor");
+		}
+		return instance;
+	}
+	
 	public Game(boolean isManual, String aPlayer1, String aPlayer2, int aSize) {
 		this.manualMode = isManual;
 		this.Player1 = aPlayer1;
@@ -19,6 +29,8 @@ public class Game {
 		this.board = new Board(this.gridSize);
 		this.turn = 1;
 		this.AIMove = "";
+		this.isOver = false;
+		instance = this;
 	}
 	
 	public boolean tryPlay(char rowChar, int colH) {	
@@ -30,11 +42,17 @@ public class Game {
 	}
 	
 	public String getAMove() {
-		return this.board.randomMove(this.turn);
+		if(!this.isOver)
+			return this.board.randomMove(this.turn);
+		
+		return "";
 	}
 	
 	public String getAIMove() {
-		return this.AIMove;
+		if(!this.isOver)
+			return this.AIMove;
+		
+		return "";
 	}
 	
 	public int getState(int r,int c) {
@@ -46,12 +64,16 @@ public class Game {
 		this.Player2 = "";
 		this.board.reset();
 		this.turn = 1;
+		this.isOver = false;
 	}
 	
 	public boolean currentPlayerCanPlay() {
 		boolean resp = false;	
-		if(this.board.playsForPlayer( this.turn ) > 0) 
+		if(this.board.playsForPlayer( this.turn ) > 0) {
 			resp = true;
+		} else {
+			this.isOver = true;
+		}
 
 		return resp;
 	}
@@ -85,8 +107,16 @@ public class Game {
 		return this.gridSize;
 	}
 	
+	public void finishGame() {
+		this.isOver = true;
+	}
+	
+	public boolean isOver() {
+		return this.isOver;
+	}
+	
 	public void playAI() {
-        if(!this.manualMode) {
+        if(!this.manualMode && !this.isOver) {
     		this.AIMove = "";
         	System.out.print("Generating AI move... ");
         	
