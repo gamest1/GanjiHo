@@ -13,6 +13,11 @@ public class Board {
 	        this.score = score;
 	        this.move = move;
 	    }
+	    
+	    @Override
+	    public String toString() {
+	        return "Playing " + move + " @ h(n)= " + score;
+	    }
 	}
 	
 	public static int max_depth = 5;
@@ -226,6 +231,7 @@ public class Board {
 		int tmp = alphaBeta(this, max_depth, Integer.MIN_VALUE, Integer.MAX_VALUE, (player == 1) ? true : false);
 		for(Play p : this.playsAndScores) {
 			if( p.score == tmp ) {
+				System.out.println("Playing = " + p);
 				resp = p.move;
 				break;
 			}
@@ -233,14 +239,26 @@ public class Board {
 		return resp;
 	}
 	
+	public boolean isTerminal(boolean isMAX) {
+		boolean resp = false;
+		if(isMAX && this.plays1.size() == 0) resp = true;
+		else if(!isMAX && this.plays2.size() == 0) resp = true;
+	
+		return resp;
+	}
+		
 	//The actual MinMax Logic is in this function
 	public int alphaBeta(Board node,int depth,int a, int b, boolean isMAX) {
-		boolean isTerminal = false;
-		if(isMAX && node.plays1.size() == 0) isTerminal = true;
-		else if(!isMAX && node.plays2.size() == 0) isTerminal = true;
 		
-		if (depth == 0 || isTerminal)
-			return node.heuristicValue(isMAX);
+		if (depth == 0) {
+			int resp = node.heuristicValue(isMAX);
+			//System.out.println("Alpha-Beta reached max depth. Returning h(n)="+resp);
+			return resp;
+		} else if (node.isTerminal(isMAX)) {
+			int resp = node.heuristicValue(isMAX);
+			//System.out.println("Alpha-Beta reached terminal node. Returning h(n)="+resp);
+			return resp;
+		}
 		
 		if(isMAX) {
 			int resp = Integer.MIN_VALUE;
