@@ -13,7 +13,7 @@ public class GanjiHoDriver extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	public static final String INIT_MESSAGE = "Hello, please enter a board size and the names of the players";
-	public static final int MAX_AI_TIMEOUT = 30000;
+	public static final int MAX_AI_TIMEOUT = 3000;
 	
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -182,8 +182,9 @@ public class GanjiHoDriver extends JFrame {
     			@Override
     			public void taskFailed() {
     				if(!game.isOver()) {
-    					System.out.println("AI move generation timeout! Fetching any...");
+    					System.out.print("Playing = ");
     					String tmp = game.getAMove();
+    					System.out.println("Playing " + tmp + " @ h(n)= R");
     					TryToPlayMove(tmp);
     				}
     				moveBox.setEnabled(true);

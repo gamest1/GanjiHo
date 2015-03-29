@@ -125,8 +125,6 @@ public class Game {
     		} else if(this.Player2.equals("COMPUTER") && this.turn == 2 ) {
     			this.AIMove = this.board.generateAIPlay(2);
     		}
-    		
-    		System.out.println("Done! (" + this.AIMove + ")");
         }
 	}
 }

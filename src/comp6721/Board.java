@@ -25,8 +25,8 @@ public class Board {
 	public int boardSize;
 	public int[][] board;
 	
-	public List<String> plays1;
-	public List<String> plays2;
+	public List<String> plays1; //Plays on this array are ordered by columns A1,B1,C1,A2,B2,C2,etc...
+	public List<String> plays2; //Plays on this array are ordered by row A1,A2,A3,B1,B2,B3,etc...
 	
 	public List<Play> playsAndScores;
 	
@@ -38,16 +38,16 @@ public class Board {
 		
 		switch(size) {
 			case 6:
-				max_depth = 6;
+				max_depth = 8;
 				break;
 			case 7:
-				max_depth = 5;
+				max_depth = 7;
 				break;
 			case 8:
-				max_depth = 4;
+				max_depth = 6;
 				break;
 			default:
-				max_depth = 3;
+				max_depth = 5;
 				break;
 		}
 		
@@ -59,14 +59,12 @@ public class Board {
 		
 		for(int r = 0 ; r < this.boardSize ; r++) 
 			for(int c = 0 ; c < this.boardSize ; c++) {
-					if(r < this.boardSize  - 1) {
-						this.plays1.add(  Character.toString((char)(r+65)) + (c+1) );
-					}
-					
 					if(c < this.boardSize  - 1) {
+						this.plays1.add(  Character.toString((char)(c+65)) + (r+1) );
 						this.plays2.add(  Character.toString((char)(r+65)) + (c+1) );
 					}				
-			} 						
+			} 	
+		
 		reset();
 	}
 	
@@ -121,7 +119,28 @@ public class Board {
 		return resp;
 	}
 	
-	private void recalculatePlaysAt(int state,int row,int col) {
+	private void recalculatePlaysAt(int state,int row,int c) {
+		int col = c + 1;
+		if(state == 1) {
+			this.plays1.remove(  Character.toString((char)(row+64)) + (col) );
+			this.plays1.remove(  Character.toString((char)(row+65)) + (col) );
+			this.plays1.remove(  Character.toString((char)(row+66)) + (col) );
+			this.plays2.remove(  Character.toString((char)(row+65)) + (col-1) );
+			this.plays2.remove(  Character.toString((char)(row+65)) + (col) );
+			this.plays2.remove(  Character.toString((char)(row+66)) + (col-1) );
+			this.plays2.remove(  Character.toString((char)(row+66)) + (col) );
+		} else {
+			this.plays1.remove(  Character.toString((char)(row+64)) + (col) );
+			this.plays1.remove(  Character.toString((char)(row+64)) + (col+1) );
+			this.plays1.remove(  Character.toString((char)(row+65)) + (col) );
+			this.plays1.remove(  Character.toString((char)(row+65)) + (col+1) );
+			this.plays2.remove(  Character.toString((char)(row+65)) + (col-1) );
+			this.plays2.remove(  Character.toString((char)(row+65)) + (col) );
+			this.plays2.remove(  Character.toString((char)(row+65)) + (col+1) );
+		}		
+	}
+	
+	private void recalculatePlaysAt2(int state,int row,int col) {
 		int rMin = 0; int rMax = 0; int cMin = 0; int cMax = 0;
 	
 		if(state == 1) {
@@ -210,7 +229,59 @@ public class Board {
 			return Integer.MAX_VALUE;
 		}
 		
+//		int a = effectivePlaysForPlayer(1);
+//		System.out.println("Effective: " + a + ". " + this.plays1);
+//		int b = effectivePlaysForPlayer(2);
+//		System.out.println("Effective: " + b + ". " + this.plays2);
+//		if ( a-b != 0 ) return a - b;
+		
+//		return  a - b;
 		return this.plays1.size() - this.plays2.size();
+	}
+	
+	private int effectivePlaysForPlayer(int player) {
+		int count = 0;
+		if(player == 1) {
+			int lim = this.plays1.size();
+			int currentCol = 0;
+			char currentChar = '-';
+			for(int i = 0 ; i < lim ; i++) {
+				String move = this.plays1.get(i);
+				int nextCol = Integer.parseInt(move.substring(1));
+				if(nextCol != currentCol) {
+					currentCol = nextCol;
+					count++;
+					currentChar = move.toUpperCase().charAt(0);
+				} else {
+					char nextChar = move.toUpperCase().charAt(0);
+					if(nextChar > currentChar + 1) {
+						count++;
+						currentChar = nextChar; 
+					}
+				}				
+			}
+		} else {
+			int lim = this.plays2.size();
+			char currentChar = '-';
+			int currentCol = 0;
+			for(int i = 0 ; i < lim ; i++) {
+				String move = this.plays2.get(i);
+				char nextChar = move.toUpperCase().charAt(0);
+				if(nextChar != currentChar) {
+					currentChar = nextChar;
+					count++;
+					currentCol = Integer.parseInt(move.substring(1));
+				} else {
+					int nextCol = Integer.parseInt(move.substring(1));
+					if(nextCol > currentCol + 1) {
+						count++;
+						currentCol = nextCol; 
+					}
+				}				
+			}
+		}	
+		
+		return count;
 	}
 	
 	public String randomMove(int player) {
