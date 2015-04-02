@@ -231,14 +231,14 @@ public class Board {
 			return Integer.MAX_VALUE;
 		}
 		
-//		int a = effectivePlaysForPlayer(1);
+		int a = effectivePlaysForPlayer(1);
 //		System.out.println("Effective: " + a + ". " + this.plays1);
-//		int b = effectivePlaysForPlayer(2);
+		int b = effectivePlaysForPlayer(2);
 //		System.out.println("Effective: " + b + ". " + this.plays2);
 //		if ( a-b != 0 ) return a - b;
 		
-//		return  a - b;
-		return this.plays1.size() - this.plays2.size();
+		return  a - b;
+//		return this.plays1.size() - this.plays2.size();
 	}
 	
 	private int effectivePlaysForPlayer(int player) {
