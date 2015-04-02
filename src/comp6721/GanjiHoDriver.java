@@ -182,9 +182,9 @@ public class GanjiHoDriver extends JFrame {
     			@Override
     			public void taskFailed() {
     				if(!game.isOver()) {
-    					System.out.print("Playing = ");
+    					System.out.print("!Playing = ");
     					String tmp = game.getAMove();
-    					System.out.println("Playing " + tmp + " @ h(n)= R");
+    					System.out.println("!Playing " + tmp + " @ h(n)= R");
     					TryToPlayMove(tmp);
     				}
     				moveBox.setEnabled(true);

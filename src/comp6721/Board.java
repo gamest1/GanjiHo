@@ -20,7 +20,7 @@ public class Board {
 	    }
 	}
 	
-	public static int max_depth = 5;
+	public int max_depth;
 	
 	public int boardSize;
 	public int[][] board;
@@ -70,6 +70,8 @@ public class Board {
 	
 	public Board(Board oldBoard) {
 		this.boardSize = oldBoard.boardSize;
+		this.max_depth = oldBoard.max_depth;
+		
 		this.board = new int[oldBoard.boardSize][oldBoard.boardSize];
 		for(int r = 0 ; r < this.boardSize ; r++) 
 			for(int c = 0 ; c < this.boardSize ; c++) {
@@ -302,7 +304,7 @@ public class Board {
 		int tmp = alphaBeta(this, max_depth, Integer.MIN_VALUE, Integer.MAX_VALUE, (player == 1) ? true : false);
 		for(Play p : this.playsAndScores) {
 			if( p.score == tmp ) {
-				System.out.println("Playing = " + p);
+				System.out.println("Playing = " + p + " MD: " + this.max_depth);
 				resp = p.move;
 				break;
 			}

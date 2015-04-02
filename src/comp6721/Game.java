@@ -42,9 +42,14 @@ public class Game {
 	}
 	
 	public String getAMove() {
-		if(!this.isOver)
-			return this.board.randomMove(this.turn);
-		
+		if(!this.isOver) {
+			if(this.AIMove == "") {
+				return this.board.randomMove(this.turn);				
+			} else {
+				return this.AIMove;
+			}			
+		}
+
 		return "";
 	}
 	
@@ -121,8 +126,18 @@ public class Game {
         	System.out.print("Generating AI move... ");
         	
     		if(this.Player1.equals("COMPUTER") && this.turn == 1 ) {
+    			Board tmp = new Board(this.board);
+    			tmp.max_depth = 2;
+    			this.AIMove = tmp.generateAIPlay(1);
+    			
+    			this.board.max_depth = 6;
     			this.AIMove = this.board.generateAIPlay(1);
     		} else if(this.Player2.equals("COMPUTER") && this.turn == 2 ) {
+    			Board tmp = new Board(this.board);
+    			tmp.max_depth = 2;
+    			this.AIMove = tmp.generateAIPlay(2);
+    			
+    			this.board.max_depth = 6;
     			this.AIMove = this.board.generateAIPlay(2);
     		}
         }
