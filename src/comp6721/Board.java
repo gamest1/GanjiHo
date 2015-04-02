@@ -337,7 +337,7 @@ public class Board {
 				String move = i.next();
 				char rowH = move.toUpperCase().charAt(0);
 				int col = Integer.parseInt(move.substring(1));
-				Board newBoard = new Board(this);
+				Board newBoard = new Board(node);
 				newBoard.play(1,rowH,col);
 			    resp = Math.max(resp,alphaBeta(newBoard,depth - 1,a,b, false));
 			    a = Math.max(a, resp);
@@ -353,7 +353,7 @@ public class Board {
 				String move = i.next();
 				char rowH = move.toUpperCase().charAt(0);
 				int col = Integer.parseInt(move.substring(1));
-				Board newBoard = new Board(this);
+				Board newBoard = new Board(node);
 				newBoard.play(2,rowH,col);
 			    resp = Math.min(resp,alphaBeta(newBoard,depth - 1,a,b, true));
 			    b = Math.min(b, resp);
